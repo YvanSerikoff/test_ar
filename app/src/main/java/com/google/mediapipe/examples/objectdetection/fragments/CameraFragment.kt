@@ -16,13 +16,13 @@
 package com.google.mediapipe.examples.objectdetection.fragments
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -35,11 +35,15 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.mediapipe.examples.objectdetection.ARCoreHelper
 import com.google.mediapipe.examples.objectdetection.MainViewModel
+import com.google.mediapipe.examples.objectdetection.ModelManager
 import com.google.mediapipe.examples.objectdetection.ObjectDetectorHelper
 import com.google.mediapipe.examples.objectdetection.R
 import com.google.mediapipe.examples.objectdetection.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
+import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectorResult
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -59,6 +63,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
+
+    // AR-related properties
+    private lateinit var arFragment: ArFragment
+    private lateinit var modelManager: ModelManager
+    private lateinit var arCoreHelper: ARCoreHelper
 
     /** Blocking ML operations are performed using this executor */
     private lateinit var backgroundExecutor: ExecutorService
@@ -91,14 +100,24 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             viewModel.setDelegate(objectDetectorHelper.currentDelegate)
             viewModel.setThreshold(objectDetectorHelper.threshold)
             viewModel.setMaxResults(objectDetectorHelper.maxResults)
+            viewModel.setEnableAROverlay(objectDetectorHelper.enableAROverlay)
             // Close the object detector and release resources
             backgroundExecutor.execute { objectDetectorHelper.clearObjectDetector() }
         }
-
     }
 
     override fun onDestroyView() {
         _fragmentCameraBinding = null
+
+        // Clean up AR resources
+        if (::arCoreHelper.isInitialized) {
+            arCoreHelper.destroy()
+        }
+
+        if (::modelManager.isInitialized) {
+            modelManager.dispose()
+        }
+
         super.onDestroyView()
 
         // Shut down our background executor.
@@ -127,6 +146,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
 
+        // Setup for AR
+        arFragment = childFragmentManager.findFragmentById(R.id.ar_fragment) as ArFragment
+        modelManager = ModelManager(requireContext())
+        arCoreHelper = ARCoreHelper(requireContext(), arFragment, modelManager)
+
         // Create the ObjectDetectionHelper that will handle the inference
         backgroundExecutor.execute {
             objectDetectorHelper =
@@ -136,6 +160,7 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                     currentDelegate = viewModel.currentDelegate,
                     currentModel = viewModel.currentModel,
                     maxResults = viewModel.currentMaxResults,
+                    enableAROverlay = viewModel.enableAROverlay,
                     objectDetectorListener = this,
                     runningMode = RunningMode.LIVE_STREAM
                 )
@@ -158,6 +183,16 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
             viewModel.currentMaxResults.toString()
         fragmentCameraBinding.bottomSheetLayout.thresholdValue.text =
             String.format("%.2f", viewModel.currentThreshold)
+
+        // Initialize AR overlay switch
+        fragmentCameraBinding.bottomSheetLayout.switchArOverlay.isChecked = viewModel.enableAROverlay
+        fragmentCameraBinding.bottomSheetLayout.switchArOverlay.setOnCheckedChangeListener { _, isChecked ->
+            objectDetectorHelper.enableAROverlay = isChecked
+            if (!isChecked) {
+                // Clear any anchors if AR overlay is disabled
+                arCoreHelper.clearAnchors()
+            }
+        }
 
         // When clicked, lower detection score threshold floor
         fragmentCameraBinding.bottomSheetLayout.thresholdMinus.setOnClickListener {
@@ -243,6 +278,11 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                     /* no op */
                 }
             }
+
+        // Reset AR models button
+        fragmentCameraBinding.bottomSheetLayout.buttonClearAr.setOnClickListener {
+            arCoreHelper.clearAnchors()
+        }
     }
 
     // Update the values displayed in the bottom sheet. Reset detector.
@@ -333,10 +373,21 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        imageAnalyzer?.targetRotation =
-            fragmentCameraBinding.viewFinder.display.rotation
+    override fun onResume() {
+        super.onResume()
+        // Make sure that all permissions are still present, since the
+        // user could have removed them while the app was in paused state.
+        if (!PermissionsFragment.hasPermissions(requireContext())) {
+            Navigation.findNavController(
+                requireActivity(), R.id.fragment_container
+            ).navigate(CameraFragmentDirections.actionCameraToPermissions())
+        }
+
+        backgroundExecutor.execute {
+            if (objectDetectorHelper.isClosed()) {
+                objectDetectorHelper.setupObjectDetector()
+            }
+        }
     }
 
     // Update UI after objects have been detected. Extracts original image height/width
@@ -356,12 +407,31 @@ class CameraFragment : Fragment(), ObjectDetectorHelper.DetectorListener {
                         resultBundle.inputImageWidth,
                         resultBundle.inputImageRotation
                     )
+
+                    // If AR overlay is enabled, place 3D models on detected objects
+                    if (objectDetectorHelper.enableAROverlay) {
+                        placeARModels(detectionResult, resultBundle.inputImageWidth, resultBundle.inputImageHeight)
+                    }
                 }
 
                 // Force a redraw
                 fragmentCameraBinding.overlay.invalidate()
             }
         }
+    }
+
+    private fun placeARModels(
+        detectionResult: ObjectDetectorResult,
+        inputWidth: Int,
+        inputHeight: Int
+    ) {
+        if (!::arCoreHelper.isInitialized) return
+
+        arCoreHelper.placeModelOnDetectedObject(
+            detectionResult,
+            inputWidth,
+            inputHeight
+        )
     }
 
     override fun onError(error: String, errorCode: Int) {

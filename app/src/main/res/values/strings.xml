@@ -15,7 +15,7 @@
     ~ limitations under the License.
 -->
 <resources>
-    <string name="app_name">MediaPipe Object Detection</string>
+    <string name="app_name">MediaPipe Object Detection AR</string>
 
     <string name="alt_bottom_sheet_chevron">Bottom sheet expandable indicator</string>
 
@@ -38,6 +38,10 @@
     <string name="menu_gallery">Gallery</string>
     <string name="tv_gallery_placeholder">Click + to add an image or a video
         to begin running the object detection.</string>
+
+    <!-- AR related strings -->
+    <string name="label_ar_overlay">Enable AR Overlay</string>
+    <string name="clear_ar_models">Clear AR Models</string>
 
     <string-array name="delegate_spinner_titles">
         <item>CPU</item>

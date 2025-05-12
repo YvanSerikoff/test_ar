@@ -21,12 +21,12 @@ apply plugin: "androidx.navigation.safeargs"
 apply plugin: 'de.undercouch.download'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
     defaultConfig {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         applicationId "com.google.mediapipe.examples.objectdetection"
         minSdkVersion 24
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0.0"
     }
@@ -55,7 +55,7 @@ android {
         viewBinding true
     }
     androidResources {
-        noCompress 'tflite'
+        noCompress 'tflite', 'glb', 'gltf'
     }
 
 }
@@ -69,25 +69,29 @@ apply from:'download_models.gradle'
 
 dependencies {
     // Kotlin lang
-    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.core:core-ktx:1.9.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+
+    implementation 'com.google.android.filament:filament-android:1.17.1'
 
     // App compat and UI things
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'com.google.android.material:material:1.0.0'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
-    implementation 'androidx.fragment:fragment-ktx:1.5.4'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+    implementation 'androidx.fragment:fragment-ktx:1.5.7'
+    implementation 'com.google.ar.sceneform:core:1.17.1'
+    implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.17.1'
 
     // Navigation library
-    def nav_version = "2.3.5"
+    def nav_version = "2.5.3"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
     // CameraX core library
-    def camerax_version = '1.1.0'
+    def camerax_version = '1.2.1'
     implementation "androidx.camera:camera-core:$camerax_version"
 
     // CameraX Camera2 extensions
@@ -100,21 +104,28 @@ dependencies {
     implementation "androidx.camera:camera-view:$camerax_version"
 
     //WindowManager
-    implementation 'androidx.window:window:1.0.0-alpha09'
+    implementation 'androidx.window:window:1.0.0'
+
+    // MediaPipe
+    implementation 'com.google.mediapipe:tasks-vision:0.10.14'
+
+    // ARCore and Sceneform
+    implementation 'com.google.ar:core:1.40.0'
+
+    // SceneView (Sceneform maintained)
+    implementation 'io.github.sceneview:sceneview:1.0.10'
 
     // Unit testing
-    testImplementation 'androidx.test.ext:junit:1.1.3'
-    testImplementation 'androidx.test:rules:1.4.0'
-    testImplementation 'androidx.test:runner:1.4.0'
-    testImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    testImplementation 'org.robolectric:robolectric:4.4'
+    testImplementation 'androidx.test.ext:junit:1.1.5'
+    testImplementation 'androidx.test:rules:1.5.0'
+    testImplementation 'androidx.test:runner:1.5.2'
+    testImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    testImplementation 'org.robolectric:robolectric:4.10.3'
 
     // Instrumented testing
-    androidTestImplementation "androidx.test.ext:junit:1.1.3"
-    androidTestImplementation "androidx.test:core:1.4.0"
-    androidTestImplementation "androidx.test:rules:1.4.0"
-    androidTestImplementation "androidx.test:runner:1.4.0"
-    androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
-
-    implementation 'com.google.mediapipe:tasks-vision:0.10.14'
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:core:1.5.0"
+    androidTestImplementation "androidx.test:rules:1.5.0"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
 }

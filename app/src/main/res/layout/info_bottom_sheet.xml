@@ -70,6 +70,38 @@
                 android:textSize="@dimen/bottom_sheet_text_size" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 
+        <!-- AR Overlay switch -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bottom_sheet_default_row_margin"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_ar_overlay"
+                android:layout_centerVertical="true"
+                android:textColor="@color/bottom_sheet_text_color"
+                android:textSize="@dimen/bottom_sheet_text_size" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_ar_overlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true" />
+        </RelativeLayout>
+
+        <!-- Clear AR models button -->
+        <Button
+            android:id="@+id/button_clear_ar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bottom_sheet_default_row_margin"
+            android:text="@string/clear_ar_models"
+            android:textSize="@dimen/bottom_sheet_text_size"
+            android:backgroundTint="@color/mp_primary" />
+
         <!-- ML confidence threshold adjustment row -->
         <RelativeLayout
             android:layout_width="match_parent"
@@ -189,7 +221,6 @@
                 android:theme="@style/BottomSheetSpinnerItemStyle"
                 android:layout_alignParentRight="true"
                 android:entries="@array/delegate_spinner_titles"/>
-
         </RelativeLayout>
 
         <!-- Model selection row -->
@@ -214,7 +245,6 @@
                 android:theme="@style/BottomSheetSpinnerItemStyle"
                 android:layout_alignParentRight="true"
                 android:entries="@array/models_spinner_titles"/>
-
         </RelativeLayout>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>

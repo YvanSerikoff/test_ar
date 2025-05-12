@@ -25,5 +25,3 @@ task downloadModelFile1(type: Download) {
     dest project.ext.ASSET_DIR + '/efficientdet-lite2.tflite'
     overwrite false
 }
-
-preBuild.dependsOn downloadModelFile0, downloadModelFile1

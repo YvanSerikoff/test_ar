@@ -20,16 +20,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/view_finder"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:scaleType="fillStart"/>
+        android:layout_height="match_parent">
 
-    <com.google.mediapipe.examples.objectdetection.OverlayView
-        android:id="@+id/overlay"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent" />
+        <androidx.camera.view.PreviewView
+            android:id="@+id/view_finder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:scaleType="fillStart"/>
+
+        <com.google.mediapipe.examples.objectdetection.OverlayView
+            android:id="@+id/overlay"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" />
+
+        <fragment
+            android:id="@+id/ar_fragment"
+            android:name="com.google.ar.sceneform.ux.ArFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </RelativeLayout>
 
     <include
         android:id="@+id/bottom_sheet_layout"
